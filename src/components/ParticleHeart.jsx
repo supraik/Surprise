@@ -41,8 +41,8 @@ export function ParticleHeart({ onDisperse, isMobile = false }) {
   const uniforms = useMemo(() => ({
     uTime:       { value: 0 },
     uHeartBeat:  { value: 1.0 },
-    uPixelRatio: { value: Math.min(window.devicePixelRatio || 1, 2) * (isMobile ? 1.6 : 1.0) },
-  }), [isMobile]);
+    uPixelRatio: { value: Math.min(window.devicePixelRatio || 1, 2) },
+  }), []);
 
   // Cursor world position (ref — zero re-renders)
   const cursorWorld     = useRef(new THREE.Vector3(99999, 99999, 0));
@@ -126,9 +126,9 @@ export function ParticleHeart({ onDisperse, isMobile = false }) {
 
     // ── Physics constants ────────────────────────────────────────────────
     // Repulsion: larger radius + stronger force so particles scatter visibly
-    const WIPE_R     = isMobile ? 2.4  : 2.2;
+    const WIPE_R     = isMobile ? 1.8  : 2.2;
     const WIPE_R_SQ  = WIPE_R * WIPE_R;
-    const WIPE_FORCE = isMobile ? 0.14 : 0.14; // much stronger than before
+    const WIPE_FORCE = isMobile ? 0.10 : 0.14; // much stronger than before
 
     // Spring: weaker spring → particles go further before returning
     const SPRING  = 0.018;   // was 0.042 — now much softer
