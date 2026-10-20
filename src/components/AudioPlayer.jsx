@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Music } from 'lucide-react';
+import { VolumeX } from 'lucide-react';
 import { romanticAudio } from '../utils/audioSynth';
 
 /**
@@ -13,7 +13,6 @@ export function AudioPlayer() {
     isMuted: romanticAudio.isMuted,
     isUsingSynth: romanticAudio.isUsingSynth,
   });
-  const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
     const unsubscribe = romanticAudio.subscribe((state) => {
@@ -37,9 +36,8 @@ export function AudioPlayer() {
         id="audio-toggle-btn"
         className={`rose-audio-btn ${audioState.isPlaying && !audioState.isMuted ? 'active' : ''}`}
         onClick={handleClick}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        aria-label={audioState.isMuted ? 'Unmute audio' : 'Toggle audio'}
+        aria-label={audioState.isMuted ? 'Unmute music' : 'Mute music'}
+        title={audioState.isMuted ? 'Unmute music' : 'Mute music'}
       >
         {audioState.isPlaying && !audioState.isMuted ? (
           <div className="rose-soundwave">
@@ -51,18 +49,6 @@ export function AudioPlayer() {
           <VolumeX size={17} className="rose-audio-icon muted" />
         )}
       </button>
-
-      {/* Subtle tooltip */}
-      {showTooltip && (
-        <div className="rose-audio-tooltip">
-          <Music size={12} className="rose-tooltip-icon" />
-          <span>
-            {audioState.isUsingSynth
-              ? 'Ambient Harmony (Place true-beauty-theme.mp3 in public/audio/ for OST)'
-              : 'True Beauty Theme OST'}
-          </span>
-        </div>
-      )}
     </div>
   );
 }
