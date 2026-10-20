@@ -436,8 +436,13 @@ html, body {
   }
 
   .reveal-main-text {
-    font-size: 1.85rem;
-    letter-spacing: 0.1em;
+    font-size: 1.75rem;
+    letter-spacing: 0.08em;
+  }
+
+  .reveal-dom-inner {
+    margin-top: 4vh;
+    padding: 16px 20px;
   }
 
   .rose-bottom-area {

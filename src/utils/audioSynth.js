@@ -35,50 +35,56 @@ class RomanticAudioManager {
   initAndPlay() {
     if (this.isPlaying) return;
 
-    // Build candidate paths to handle root domains, GitHub Pages subpaths, with or without trailing slash
-    const base = import.meta.env.BASE_URL || './';
-    const normalizedBase = base.endsWith('/') ? base : `${base}/`;
-    const pathname = window.location.pathname.replace(/\/$/, '');
+    let el = document.getElementById('romantic-theme-audio');
 
-    const candidates = [
-      `${window.location.origin}${pathname}/true-beauty-theme.mp3`,
-      `${normalizedBase}true-beauty-theme.mp3`,
-      'true-beauty-theme.mp3',
-      './true-beauty-theme.mp3',
-      '/Surprise/true-beauty-theme.mp3',
-    ];
+    if (!el) {
+      el = new Audio();
+      el.id = 'romantic-theme-audio';
+      el.loop = true;
+      el.playsInline = true;
+      document.body.appendChild(el);
+    }
 
-    const uniqueCandidates = [...new Set(candidates)];
-    let index = 0;
+    // Ensure valid src
+    if (!el.src || el.src === '' || el.src.endsWith('/')) {
+      const base = import.meta.env.BASE_URL || './';
+      const normalizedBase = base.endsWith('/') ? base : `${base}/`;
+      el.src = `${normalizedBase}true-beauty-theme.mp3`;
+    }
 
-    const tryNext = () => {
-      if (index >= uniqueCandidates.length) {
-        // Fall back to Web Audio ambient synthesizer if MP3 cannot be loaded
-        this.startAmbientSynth();
-        return;
-      }
+    el.volume = this.isMuted ? 0 : 0.75;
 
-      const url = uniqueCandidates[index++];
-      const audio = new Audio(url);
-      audio.loop = true;
-      audio.volume = this.isMuted ? 0 : 0.65;
+    const playPromise = el.play();
 
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            this.audioElement = audio;
-            this.isPlaying = true;
-            this.isUsingSynth = false;
-            this.notify();
-          })
-          .catch(() => {
-            tryNext();
-          });
-      }
-    };
-
-    tryNext();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          this.audioElement = el;
+          this.isPlaying = true;
+          this.isUsingSynth = false;
+          this.notify();
+        })
+        .catch((err) => {
+          console.warn('DOM audio play() issue, trying fallback path:', err);
+          const pathname = window.location.pathname.replace(/\/$/, '');
+          el.src = `${window.location.origin}${pathname}/true-beauty-theme.mp3`;
+          el.play()
+            .then(() => {
+              this.audioElement = el;
+              this.isPlaying = true;
+              this.isUsingSynth = false;
+              this.notify();
+            })
+            .catch(() => {
+              this.startAmbientSynth();
+            });
+        });
+    } else {
+      this.audioElement = el;
+      this.isPlaying = true;
+      this.isUsingSynth = false;
+      this.notify();
+    }
   }
 
   startAmbientSynth() {
@@ -187,8 +193,9 @@ class RomanticAudioManager {
   }
 
   pause() {
-    if (this.audioElement) {
-      this.audioElement.pause();
+    const el = this.audioElement || document.getElementById('romantic-theme-audio');
+    if (el) {
+      el.pause();
     }
     if (this.synthInterval) {
       clearInterval(this.synthInterval);
@@ -203,8 +210,9 @@ class RomanticAudioManager {
 
   toggleMute() {
     this.isMuted = !this.isMuted;
-    if (this.audioElement) {
-      this.audioElement.volume = this.isMuted ? 0 : 0.65;
+    const el = this.audioElement || document.getElementById('romantic-theme-audio');
+    if (el) {
+      el.volume = this.isMuted ? 0 : 0.75;
     }
     if (this.synthGain && this.audioContext) {
       this.synthGain.gain.setTargetAtTime(
