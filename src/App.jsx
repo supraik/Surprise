@@ -43,6 +43,23 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Ensure audio starts on first direct user interaction (pointerdown / touchstart / click)
+  useEffect(() => {
+    const startAudioOnFirstInteraction = () => {
+      romanticAudio.initAndPlay();
+    };
+
+    window.addEventListener('pointerdown', startAudioOnFirstInteraction, { once: true });
+    window.addEventListener('touchstart', startAudioOnFirstInteraction, { once: true });
+    window.addEventListener('click', startAudioOnFirstInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', startAudioOnFirstInteraction);
+      window.removeEventListener('touchstart', startAudioOnFirstInteraction);
+      window.removeEventListener('click', startAudioOnFirstInteraction);
+    };
+  }, []);
+
   return (
     <main className="rose-atelier-container">
       <div className="rose-ambient-bg" />

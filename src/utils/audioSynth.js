@@ -32,30 +32,53 @@ class RomanticAudioManager {
     }
   }
 
-  async initAndPlay() {
+  initAndPlay() {
     if (this.isPlaying) return;
 
-    // First try loading the local True Beauty MP3 file
-    try {
-      const audioPath = `${import.meta.env.BASE_URL}true-beauty-theme.mp3`;
-      const response = await fetch(audioPath, { method: 'HEAD' });
+    // Build candidate paths to handle root domains, GitHub Pages subpaths, with or without trailing slash
+    const base = import.meta.env.BASE_URL || './';
+    const normalizedBase = base.endsWith('/') ? base : `${base}/`;
+    const pathname = window.location.pathname.replace(/\/$/, '');
 
-      if (response.ok) {
-        this.audioElement = new Audio(audioPath);
-        this.audioElement.loop = true;
-        this.audioElement.volume = this.isMuted ? 0 : 0.65;
-        await this.audioElement.play();
-        this.isPlaying = true;
-        this.isUsingSynth = false;
-        this.notify();
+    const candidates = [
+      `${window.location.origin}${pathname}/true-beauty-theme.mp3`,
+      `${normalizedBase}true-beauty-theme.mp3`,
+      'true-beauty-theme.mp3',
+      './true-beauty-theme.mp3',
+      '/Surprise/true-beauty-theme.mp3',
+    ];
+
+    const uniqueCandidates = [...new Set(candidates)];
+    let index = 0;
+
+    const tryNext = () => {
+      if (index >= uniqueCandidates.length) {
+        // Fall back to Web Audio ambient synthesizer if MP3 cannot be loaded
+        this.startAmbientSynth();
         return;
       }
-    } catch {
-      // Fall through to ambient Web Audio synthesis
-    }
 
-    // Fallback: Start Romantic Ambient Web Audio Synthesizer
-    this.startAmbientSynth();
+      const url = uniqueCandidates[index++];
+      const audio = new Audio(url);
+      audio.loop = true;
+      audio.volume = this.isMuted ? 0 : 0.65;
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            this.audioElement = audio;
+            this.isPlaying = true;
+            this.isUsingSynth = false;
+            this.notify();
+          })
+          .catch(() => {
+            tryNext();
+          });
+      }
+    };
+
+    tryNext();
   }
 
   startAmbientSynth() {
